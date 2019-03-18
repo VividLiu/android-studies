@@ -1,5 +1,11 @@
 # Big Nerd Ranch
 
+## Conventions
+| convention | description |
+|------------|-------------|
+| sVariableName| prefix variables with "s" to declare them as static |
+
+
 ## Shortcuts
 
 | shortcut or menu option | description |
@@ -461,4 +467,291 @@ compile fileTree(dir: 'libs', include: ['*.jar'])
 compile 'com.android.support:appcompat-v7:25.0.1'
 ...
 }
+```
+
+### Hosting a UI Fragment
+
+to host a fragment an activity must:
+
+- define a spot in its layout for the fragment's view
+- manage the lifecycle of the fragment instance
+
+#### Fragment lifecycle
+
+Fragment lifecycle:
+
+- fragment lifecycle methods are called by hosting activity and NOT OS
+- state reflects activities state
+
+Options for hosting fragment in UI:
+
+- layout fragment: add fragment to the activity's layout
+  - inflexible
+- add fragment to the activity's code
+  - only way to have control at runtime
+
+
+#### Defining container view
+
+- container view for a fragment will be a frame layout
+  - layout is generic and can be used for other fragments
+
+### Creating a UI Fragment
+
+Steps for creating UI fragment
+
+- define widgets in a layout file
+- create class and set its view to associate with the layout
+- inflate the widgets from the layout in the code
+
+### Implementing fragment lifecycle methods
+
+- onCreate lifecycle method for Fragment is public and not private as the Activity onCreate method
+- Fragment has a bundle for saving and retrieving state
+- onCreate method for Fragment does **NOT** inflate the view
+  - onCreateView is where the view gets inflated
+
+```java
+// resource: layout resource
+// root: parent view
+// attachToRoot: determines whether inflater adds the inflated view to the parent view
+Layout.Inflator.inflate(resource, ViewGroup root, attachToRoot)
+```
+
+### Wiring widgets in a fragment
+
+```java
+// use explicit method to get the view id for fragments
+// Activity view find has alias: Activity.findViewById(int)
+View.findViewById(int)
+```
+
+- listeners on fragments same as those on activities
+
+### Adding a UI Fragment to the FragmentManager
+
+- **fragment transaction** used to add, remove, attach, detech or replace fragments in the fragment list
+
+- **fragment manager** handles list of backstack of fragments. Responsible for adding fragments to the list
+
+Example of adding UI fragment:
+
+```java
+@Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_crime);
+
+        FragmentManager fm = getSupportFragmentManager();
+
+        // fragment manager identifies fragment by resource id of the framelayout
+        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
+
+        // fragment will be null initially. fragment manager saves list of fragments.
+        // when activity is recreated the fragment manager will retrieve the list and recreate the listed fragments
+
+        if (fragment == null) {
+            fragment = new CrimeFragment();
+            // transaction adds the fragment to the backlist
+            // methods follow fluid interface
+            fm.beginTransaction()
+                    .add(R.id.fragment_container, fragment)
+                    .commit()
+        }
+    }
+
+```
+
+### Fragmentmanager and the fragmenet lifecycle
+
+**fragment manager** for an activity is responsible for calling the fragment lifecycle metods
+
+  1. onAttach, onCreate, onCreateView will be called when you add the fragment in the fragment manager
+  1. onActivityCreated will be called after Activity's onCreate method is called. This method will be called after the fragment is added
+  1. onStart: when activity/fragment becomes visible
+  1. onResume: when activity/fragment returns to foreground
+  1. onPause, onStop, onDestroyView
+  1. onDestroy and onDetach will be called when activity is shutting down
+
+- if a fragment is added to an already resumed activity the onAttach, onCreate, onCreateview, onActivityCreated, onStart and onResumed will be called in succession
+
+### Architecture with Fragments
+
+- use fragments to encapsulate major components
+- two or three fragments maximum per page
+- for smaller reusable view components extract them into custom views
+
+## Ch 8: Displaying Lists with RecyclerView
+
+### Singleton's for centralized data storage
+
+**singleton** class allows only one instance of itself to be created
+
+- exists as long as it exists in memory
+- construct with private constructor and a get method
+
+```java
+public class CrimeLab {
+    private static CrimeLab sCrimeLab;
+
+    public static CrimeLab get(Context context) {
+        if (sCrimeLab == null) {
+            sCrimeLab = new CrimeLab(context);
+        }
+        return sCrimeLab;
+
+    }
+
+    // Can not be called by externals methods
+    private CrimeLab(Context context) {
+    }
+}
+```
+
+### An Abstract Activity for Hosting a Fragment
+
+Steps for utilizing an abstract Activity class efficiently
+
+- Create a generic fragment-hosting layout; useful when activities use essentially the same layout but potentially different fragments
+- Create an Abstract Activity class that adds fragments to the layout
+
+```java
+public abstract class SingleFragmentActivity extends AppCompatActivity {
+
+    // method must be implemented by class implementing this abstract class
+    protected abstract Fragment createFragment();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_fragment);
+
+        // fragment that controls the fragment section of the view
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
+
+        if (fragment == null) {
+            fragment = createFragment();
+            fm.beginTransaction()
+                    .add(R.id.fragment_container, fragment)
+                    .commit();
+        }
+    }
+}
+```
+
+- use the abstract class, need to subclass and implement the abstract method
+
+```java
+public class CrimeActivity extends SingleFragmentActivity {
+
+    @Override
+    protected Fragment createFragment() {
+        return new CrimeFragment();
+    }
+
+}
+```
+
+- need to declare activities in the AndroidManifest.xml. Otherwise the new classes will not be registered.
+
+### RecyclerView, Adapter, and ViewHolder
+
+**RecyclerView** is a subclass of ViewGroup
+
+- Benefits: efficient memory usage for displaying views by keeping copies of visible items
+- Reuses view incrementally during scroll
+- responsible for recycling views and positioning them on screen
+- never creates Views by themselves, it always creates ViewHolders, which bring their itemViews along for the ride
+- communicates with its Adapter to:
+  - getItemCount(): returns total items
+  - calls the Adapters onCreateViewHolder method
+  - receives the ViewHolder from Adapter
+- dependency can be added using File -> Project Structure... -> Select app module on the left -> then the Dependency tab using the "+" button
+  - choose Library dependency to add a dependency
+
+- as soon as you create a RecyclerView you need to attach it to a LayoutManager, otherwise if your run your app it will crash
+- each item in RecyclerView needs its own view hierarchy
+
+- example of creating a layout file with RecyclerView
+
+
+```xml
+<android.support.v7.widget.RecyclerView
+xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/crime_recycler_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"/>
+```
+
+**ViewHolder** it does a single job by holding on to the View
+
+- its itemView keeps reference of the view
+- itemView is the reason why ViewHolder exists 
+
+```java
+// sample implementation
+    private class CrimeHolder extends RecyclerView.ViewHolder {
+        public CrimeHolder(LayoutInflater inflater, ViewGroup parent) {
+            super(inflater.inflate(R.layout.list_item_crime, parent, false));
+        }
+    }
+
+```
+
+**Adapters** are a controller object between controller object that sits between RecyclerView and the data set that the RecyclerView should display
+
+- creates the necessary ViewHolders
+- binding ViewHolders to data from the model layer
+
+```java
+private class CrimeAdapter extends RecyclerView.Adapter<CrimeHolder> {
+        private List<Crime> mCrimes;
+
+        public CrimeAdapter(List<Crime> crimes) {
+            mCrimes = crimes;
+        }
+
+        @NonNull
+        @Override
+        // create a new ViewHolder
+        public CrimeHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
+            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
+
+            return new CrimeHolder(layoutInflater, parent);
+        }
+
+        @Override
+        // bind the data to the CrimeHolder
+        public void onBindViewHolder(@NonNull CrimeHolder crimeHolder, int i) {
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return mCrimes.size();
+        }
+    }
+
+}
+```
+
+Need to connect Adapter to RecyclerView
+
+- implement a method called updateUI in fragment that performs this
+
+```java
+public class CrimeListFragment extends Fragment {
+  ...
+private CrimeAdapter mAdapter;
+private void updateUI() {
+  CrimeLab crimeLab = CrimeLab.get(getActivity());
+  List<Crime> crimes = crimeLab.getCrimes();
+
+  mAdapter = new CrimeAdapter(crimes);
+  mCrimeRecyclerView.setAdapter(mAdapter);
+}
+...
+}
+...
 ```
