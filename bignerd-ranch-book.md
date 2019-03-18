@@ -1,4 +1,27 @@
 # Big Nerd Ranch
+- [Big Nerd Ranch](#big-nerd-ranch)
+  - [Conventions](#conventions)
+  - [Shortcuts](#shortcuts)
+  - [Useful Links](#useful-links)
+  - [Useful Java utilities](#useful-java-utilities)
+  - [Ch 3: Activity Lifecyle](#ch-3-activity-lifecyle)
+  - [Ch 4: Debugging Android Apps](#ch-4-debugging-android-apps)
+  - [Ch 5: Your Second Activity](#ch-5-your-second-activity)
+  - [Ch 6: Android SDK Versions and Compatibility](#ch-6-android-sdk-versions-and-compatibility)
+  - [Ch 7: UI Fragments and the Fragment Manager](#ch-7-ui-fragments-and-the-fragment-manager)
+    - [Hosting a UI Fragment](#hosting-a-ui-fragment)
+      - [Fragment lifecycle](#fragment-lifecycle)
+      - [Defining container view](#defining-container-view)
+    - [Creating a UI Fragment](#creating-a-ui-fragment)
+    - [Implementing fragment lifecycle methods](#implementing-fragment-lifecycle-methods)
+    - [Wiring widgets in a fragment](#wiring-widgets-in-a-fragment)
+    - [Adding a UI Fragment to the FragmentManager](#adding-a-ui-fragment-to-the-fragmentmanager)
+    - [Fragmentmanager and the fragmenet lifecycle](#fragmentmanager-and-the-fragmenet-lifecycle)
+    - [Architecture with Fragments](#architecture-with-fragments)
+  - [Ch 8: Displaying Lists with RecyclerView](#ch-8-displaying-lists-with-recyclerview)
+    - [Singleton's for centralized data storage](#singletons-for-centralized-data-storage)
+    - [An Abstract Activity for Hosting a Fragment](#an-abstract-activity-for-hosting-a-fragment)
+    - [RecyclerView, Adapter, and ViewHolder](#recyclerview-adapter-and-viewholder)
 
 ## Conventions
 | convention | description |
