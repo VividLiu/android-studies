@@ -1,5 +1,6 @@
 # Big Nerd Ranch
 - [Big Nerd Ranch](#big-nerd-ranch)
+  - [Java Gotchas](#java-gotchas)
   - [Conventions](#conventions)
   - [Shortcuts](#shortcuts)
   - [Useful Links](#useful-links)
@@ -22,8 +23,20 @@
     - [Singleton's for centralized data storage](#singletons-for-centralized-data-storage)
     - [An Abstract Activity for Hosting a Fragment](#an-abstract-activity-for-hosting-a-fragment)
     - [RecyclerView, Adapter, and ViewHolder](#recyclerview-adapter-and-viewholder)
+    - [Binding List Items](#binding-list-items)
+    - [Responding to Touch Events](#responding-to-touch-events)
+      - [ListView and GridView](#listview-and-gridview)
+      - [Singletons](#singletons)
+
+
+## Java Gotchas
+
+- **implements** vs **extends**
+- **class inheritance**
+
 
 ## Conventions
+
 | convention | description |
 |------------|-------------|
 | sVariableName| prefix variables with "s" to declare them as static |
@@ -778,3 +791,101 @@ private void updateUI() {
 }
 ...
 ```
+
+### Binding List Items
+
+**ViewHolder** contains all the real code for performing data binding
+
+- associate widget with the field should happen in constructor
+- bind method in ViewHolder gets called repeatedly when updating the View
+- Adapter onBindViewHolder method calls the ViewHolder.bind method
+
+```java
+    private class CrimeHolder extends RecyclerView.ViewHolder {
+
+        // store the association to widget
+        private TextView mTitleTextView;
+        private TextView mDateTextView;
+
+        private Crime mCrime;
+
+        public CrimeHolder(LayoutInflater inflater, ViewGroup parent) {
+            super(inflater.inflate(R.layout.list_item_crime, parent, false));
+
+            // extract the association to widget
+            mTitleTextView = (TextView) itemView.findViewById(R.id.crime_title);
+            mDateTextView = (TextView) itemView.findViewById(R.id.crime_date);
+        }
+
+        // performs the binding for data updates
+        public void bind(Crime crime) {
+            mCrime = crime;
+            mTitleTextView.setText(mCrime.getTitle());
+            mDateTextView.setText(mCrime.getDate().toString());
+        }
+
+
+
+    }
+
+
+    private class CrimeAdapter extends RecyclerView.Adapter<CrimeHolder> {
+        ...
+
+        @Override
+        public void onBindViewHolder(@NonNull CrimeHolder holder, int position) {
+            Crime crime = mCrimes.get(position);
+            holder.bind(crime);
+        }
+
+        ...
+    }
+
+```
+
+### Responding to Touch Events
+
+RecyclerView simply forwards raw touch events
+
+- it is up to user to deal with touch events
+- use OnClickListener to handle them. Implement listener on ViewHolder
+
+```java
+
+private class CrimeHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
+       ...
+
+        @Override
+        public void onClick(View v) {
+            // can process event in here
+            Toast.makeText(getActivity(),
+                    mCrime.getTitle() + " clicked!", Toast.LENGTH_SHORT)
+                    .show();
+
+        }
+      ...
+    }
+```
+
+#### ListView and GridView
+
+Core Android contains ListView, GridView and Adapter
+
+- used to be preferred methods for creating lists and grids
+- superceded by RecyclerView
+  - More extensible
+  - Easier for creating animations
+
+#### Singletons
+
+Singletons:
+
+- outlive fragment and activities; exist accross rotations
+- useful when many activities and fragments are modifying a model
+- should not be used for permanent storage
+- are destroyed when Android reclaims memory
+- hard to unit test because calling static method
+- alternative to singleton is a **dependency injector**
+  - allows for objects to be shared as a Singleton but makes it possible to be swapped out during unit testing
+
